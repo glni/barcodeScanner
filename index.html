@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+	<meta charset="utf-8">
+	
+	<title>Sigende titel</title>
+	
+	<meta name="robots" content="All">
+	<meta name="author" content="Udgiver">
+	<meta name="copyright" content="Information om copyright">
+	
+	<link href="css/styles.css" rel="stylesheet" type="text/css">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<h1>Stregkodescanner</h1>
+<video id="video" autoplay></video>
+<p id="result"></p>
+
+<script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+	import {BarcodeDetector} from "https://fastly.jsdelivr.net/npm/barcode-detector@2/dist/es/pure.min.js";
+	
+	const video = document.querySelector('#video');
+	const resultNode = document.querySelector('#result');
+	const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}});
+	const barcodeDetector = new BarcodeDetector({
+		formats: ["qr_code", "code_128", "code_39"],
+	});
+	
+	video.srcObject = stream;
+	video.onloadedmetadata = () => {
+		video.play();
+		requestAnimationFrame(scanBarcode);
+	};
+	
+	async function scanBarcode() {
+		const barcodes = await barcodeDetector.detect(video);
+		if(barcodes.length > 0) {
+			resultNode.innerText = `Stregkode fundet: ${barcodes[0].rawValue}`;
+			video.pause(); // Stop scanning
+		} else {
+			requestAnimationFrame(scanBarcode);
+		}
+	}
+</script>
+</body>
+</html>
